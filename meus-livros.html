@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Meus Livros">
+    <title>Meu Controle de Leituras</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --success-bg: #dcfce7;
+            --success-text: #166534;
+            --reading-bg: #fef9c3;
+            --reading-text: #854d0e;
+            --star: #f59e0b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1050px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: var(--primary);
+        }
+
+        header p {
+            color: var(--muted);
+            margin-top: 5px;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .goal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .goal-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        .goal-input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .goal-input-group input {
+            width: 65px;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 14px;
+            background-color: var(--border);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .goal-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+
+        input, select, textarea {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 8px 14px;
+            font-size: 0.85rem;
+            margin-top: 0;
+        }
+
+        .btn-outline:hover {
+            background: #eef2ff;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            color: var(--muted);
+            border-bottom: 2px solid var(--border);
+            padding: 12px 8px;
+        }
+
+        td {
+            padding: 14px 8px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.92rem;
+            vertical-align: top;
+        }
+
+        .book-review {
+            font-size: 0.83rem;
+            color: var(--muted);
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        .stars {
+            color: var(--star);
+            letter-spacing: 1px;
+            font-size: 0.95rem;
+        }
+
+        .genre-tag {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 500;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-done {
+            background: var(--success-bg);
+            color: var(--success-text);
+        }
+
+        .badge-reading {
+            background: var(--reading-bg);
+            color: var(--reading-text);
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .edit-btn { color: var(--primary); }
+        .edit-btn:hover { background: #eef2ff; }
+        .del-btn { color: #dc2626; }
+        .del-btn:hover { background: #fee2e2; }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--muted);
+        }
+
+        @media (max-width: 768px) {
+            table, thead, tbody, th, td, tr { display: block; }
+            thead { display: none; }
+            tr {
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                margin-bottom: 12px;
+                padding: 12px;
+            }
+            td {
+                border: none;
+                padding: 5px 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                text-align: right;
+            }
+            td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: var(--muted);
+                text-align: left;
+                margin-right: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Meu Controle de Leituras</h1>
+        <p>Acompanhe seus livros, metas, avaliações e anotações</p>
+    </header>
+
+    <div class="card">
+        <div class="goal-header">
+            <span class="goal-title">Meta de Leitura (<span id="currentYearLabel"></span>)</span>
+            <div class="goal-input-group">
+                <label for="annualGoal" style="margin:0;">Meta de livros:</label>
+                <input type="number" id="annualGoal" min="1" max="500" value="12" onchange="updateGoal()">
+            </div>
+        </div>
+        <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progressBar"></div>
+        </div>
+        <div class="goal-stats">
+            <span id="goalProgressText">0 de 12 livros concluídos este ano</span>
+            <span id="goalPercentText">0%</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <form id="bookForm">
+            <input type="hidden" id="editIndex" value="-1">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="title">Título do Livro *</label>
+                    <input type="text" id="title" placeholder="Ex: Dom Casmurro" required>
+                </div>
+                <div class="form-group">
+                    <label for="author">Autor *</label>
+                    <input type="text" id="author" placeholder="Ex: Machado de Assis" required>
+                </div>
+                <div class="form-group">
+                    <label for="genre">Gênero Literário</label>
+                    <input type="text" id="genre" list="genreSuggestions" placeholder="Ex: Romance, Ficção...">
+                    <datalist id="genreSuggestions">
+                        <option value="Romance">
+                        <option value="Ficção Científica">
+                        <option value="Fantasia">
+                        <option value="Suspense / Thriller">
+                        <option value="Biografia">
+                        <option value="História">
+                        <option value="Desenvolvimento Pessoal">
+                        <option value="Negócios">
+                        <option value="Filosofia">
+                    </datalist>
+                </div>
+                <div class="form-group">
+                    <label for="pages">Nº de Páginas</label>
+                    <input type="number" id="pages" min="1" placeholder="Ex: 256">
+                </div>
+                <div class="form-group">
+                    <label for="startDate">Data de Início *</label>
+                    <input type="date" id="startDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="endDate">Data de Término</label>
+                    <input type="date" id="endDate">
+                </div>
+                <div class="form-group">
+                    <label for="rating">Avaliação</label>
+                    <select id="rating">
+                        <option value="0">Sem avaliação</option>
+                        <option value="5">★★★★★ (5 - Excelente)</option>
+                        <option value="4">★★★★☆ (4 - Muito bom)</option>
+                        <option value="3">★★★☆☆ (3 - Bom)</option>
+                        <option value="2">★★☆☆☆ (2 - Regular)</option>
+                        <option value="1">★☆☆☆☆ (1 - Fraco)</option>
+                    </select>
+                </div>
+                <div class="form-group full-width">
+                    <label for="review">Resenha ou Anotações</label>
+                    <textarea id="review" placeholder="Escreva suas impressões, citações favoritas ou um resumo do que achou..."></textarea>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button type="submit" class="btn" id="submitBtn">Adicionar Livro</button>
+                <button type="button" class="btn btn-outline" id="cancelEditBtn" style="display:none; margin-top:16px;" onclick="resetForm()">Cancelar Edição</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="toolbar">
+            <input type="text" id="searchInput" class="search-box" placeholder="Buscar por título, autor ou gênero..." onkeyup="renderBooks()">
+            <div class="stats" id="statsDisplay"></div>
+            <button class="btn btn-outline" onclick="exportCSV()">Exportar Planilha (CSV)</button>
+        </div>
+
+        <div id="tableContainer"></div>
+    </div>
+</div>
+
+<script>
+    let books = JSON.parse(localStorage.getItem('myBooksList')) || [];
+    const currentYear = new Date().getFullYear();
+    document.getElementById('currentYearLabel').textContent = currentYear;
+
+    const savedGoal = localStorage.getItem('myAnnualReadingGoal') || 12;
+    document.getElementById('annualGoal').value = savedGoal;
+
+    function updateGoal() {
+        const goal = parseInt(document.getElementById('annualGoal').value) || 1;
+        localStorage.setItem('myAnnualReadingGoal', goal);
+        renderGoalProgress();
+    }
+
+    function renderGoalProgress() {
+        const goal = parseInt(document.getElementById('annualGoal').value) || 1;
+        const finishedThisYear = books.filter(b => {
+            if (!b.endDate) return false;
+            return b.endDate.startsWith(String(currentYear));
+        }).length;
+
+        const percent = Math.min(100, Math.round((finishedThisYear / goal) * 100));
+        document.getElementById('progressBar').style.width = percent + '%';
+        document.getElementById('goalProgressText').textContent = `${finishedThisYear} de ${goal} livros concluídos em ${currentYear}`;
+        document.getElementById('goalPercentText').textContent = `${percent}%`;
+    }
+
+    function saveBooks() {
+        localStorage.setItem('myBooksList', JSON.stringify(books));
+        renderBooks();
+        renderGoalProgress();
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '-';
+        const [year, month, day] = dateStr.split('-');
+        return `${day}/${month}/${year}`;
+    }
+
+    function calculateDays(start, end) {
+        if (!start || !end) return '';
+        const d1 = new Date(start);
+        const d2 = new Date(end);
+        const diff = Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+        if (diff < 0) return '';
+        return diff === 0 ? ' (1 dia)' : ` (${diff + 1} dias)`;
+    }
+
+    function renderStars(rating) {
+        const num = parseInt(rating) || 0;
+        if (num === 0) return '<span style="color:#cbd5e1; font-size:0.8rem;">—</span>';
+        return '<span class="stars">' + '★'.repeat(num) + '☆'.repeat(5 - num) + '</span>';
+    }
+
+    document.getElementById('bookForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const title = document.getElementById('title').value.trim();
+        const author = document.getElementById('author').value.trim();
+        const genre = document.getElementById('genre').value.trim();
+        const pages = document.getElementById('pages').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        const rating = document.getElementById('rating').value;
+        const review = document.getElementById('review').value.trim();
+        const editIndex = parseInt(document.getElementById('editIndex').value);
+
+        const bookData = { title, author, genre, pages, startDate, endDate, rating, review };
+
+        if (editIndex >= 0) {
+            books[editIndex] = bookData;
+        } else {
+            books.unshift(bookData);
+        }
+
+        resetForm();
+        saveBooks();
+    });
+
+    function editBook(index) {
+        const book = books[index];
+        document.getElementById('title').value = book.title || '';
+        document.getElementById('author').value = book.author || '';
+        document.getElementById('genre').value = book.genre || '';
+        document.getElementById('pages').value = book.pages || '';
+        document.getElementById('startDate').value = book.startDate || '';
+        document.getElementById('endDate').value = book.endDate || '';
+        document.getElementById('rating').value = book.rating || '0';
+        document.getElementById('review').value = book.review || '';
+        document.getElementById('editIndex').value = index;
+        document.getElementById('submitBtn').textContent = 'Salvar Alterações';
+        document.getElementById('cancelEditBtn').style.display = 'inline-block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function deleteBook(index) {
+        if (confirm(`Deseja remover "${books[index].title}" da sua lista?`)) {
+            books.splice(index, 1);
+            saveBooks();
+        }
+    }
+
+    function resetForm() {
+        document.getElementById('bookForm').reset();
+        document.getElementById('editIndex').value = '-1';
+        document.getElementById('submitBtn').textContent = 'Adicionar Livro';
+        document.getElementById('cancelEditBtn').style.display = 'none';
+    }
+
+    function renderBooks() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const container = document.getElementById('tableContainer');
+        const statsDisplay = document.getElementById('statsDisplay');
+
+        const finishedBooks = books.filter(b => b.endDate);
+        const finishedCount = finishedBooks.length;
+        const readingCount = books.length - finishedCount;
+        const totalPagesRead = finishedBooks.reduce((sum, b) => sum + (parseInt(b.pages) || 0), 0);
+
+        statsDisplay.innerHTML = `
+            <span>Total: <strong>${books.length}</strong></span> |
+            <span>Lidos: <strong>${finishedCount}</strong></span> |
+            <span>Lendo: <strong>${readingCount}</strong></span> |
+            <span>Páginas lidas: <strong>${totalPagesRead.toLocaleString('pt-BR')}</strong></span>
+        `;
+
+        const filtered = books
+            .map((book, originalIndex) => ({ ...book, originalIndex }))
+            .filter(b => 
+                (b.title && b.title.toLowerCase().includes(query)) || 
+                (b.author && b.author.toLowerCase().includes(query)) ||
+                (b.genre && b.genre.toLowerCase().includes(query))
+            );
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class="empty-state">Nenhum livro encontrado. Adicione sua primeira leitura acima!</div>`;
+            return;
+        }
+
+        let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Livro e Resenha</th>
+                        <th>Gênero / Págs</th>
+                        <th>Datas</th>
+                        <th>Avaliação</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        filtered.forEach(book => {
+            const isFinished = Boolean(book.endDate);
+            const statusBadge = isFinished
+                ? `<span class="badge badge-done">Concluído${calculateDays(book.startDate, book.endDate)}</span>`
+                : `<span class="badge badge-reading">Lendo</span>`;
+
+            const genreHtml = book.genre ? `<span class="genre-tag">${book.genre}</span>` : '';
+            const pagesHtml = book.pages ? `<div style="font-size:0.8rem; color:var(--muted); margin-top:4px;">${book.pages} págs.</div>` : '';
+            const reviewHtml = book.review ? `<div class="book-review">"${book.review}"</div>` : '';
+
+            html += `
+                <tr>
+                    <td data-label="Livro">
+                        <div><strong>${book.title}</strong></div>
+                        <div style="font-size:0.85rem; color:var(--muted);">${book.author}</div>
+                        ${reviewHtml}
+                    </td>
+                    <td data-label="Gênero / Págs">
+                        ${genreHtml || '-'}
+                        ${pagesHtml}
+                    </td>
+                    <td data-label="Datas">
+                        <div style="font-size:0.85rem;">Início: ${formatDate(book.startDate)}</div>
+                        <div style="font-size:0.85rem;">Fim: ${formatDate(book.endDate)}</div>
+                    </td>
+                    <td data-label="Avaliação">${renderStars(book.rating)}</td>
+                    <td data-label="Status">${statusBadge}</td>
+                    <td data-label="Ações">
+                        <button class="action-btn edit-btn" onclick="editBook(${book.originalIndex})">Editar</button>
+                        <button class="action-btn del-btn" onclick="deleteBook(${book.originalIndex})">Excluir</button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += `</tbody></table>`;
+        container.innerHTML = html;
+    }
+
+    function exportCSV() {
+        if (books.length === 0) {
+            alert('Adicione pelo menos um livro antes de exportar.');
+            return;
+        }
+        let csv = 'Titulo;Autor;Genero;Paginas;Data de Inicio;Data de Termino;Avaliacao;Status;Resenha
+';
+        books.forEach(b => {
+            const status = b.endDate ? 'Concluido' : 'Lendo';
+            const cleanReview = (b.review || '').replace(/"/g, '""').replace(/
+/g, ' ');
+            csv += `"${b.title}";"${b.author}";"${b.genre || ''}";"${b.pages || ''}";"${formatDate(b.startDate)}";"${formatDate(b.endDate)}";"${b.rating || 0}";"${status}";"${cleanReview}"
+`;
+        });
+        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'minhas-leituras.csv';
+        link.click();
+    }
+
+    renderBooks();
+    renderGoalProgress();
+</script>
+
+</body>
+</html>
